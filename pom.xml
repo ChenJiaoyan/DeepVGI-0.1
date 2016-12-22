@@ -6,9 +6,7 @@
     <artifactId>deepvgi</artifactId>
     <version>0.1-SNAPSHOT</version>
     <modelVersion>4.0.0</modelVersion>
-
     <name>Deep VGI</name>
-
     <repositories>
         <repository>
             <id>snapshots-repo</id>

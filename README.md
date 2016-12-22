@@ -1,1 +1,1 @@
-The project aims at deeply learning from satellite imageries with the supervision of VGI (OSM and MapSwipe)
+The project aims at deeply learning from satellite images with the supervision of VGI (OSM and MapSwipe)
