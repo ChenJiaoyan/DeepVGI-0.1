@@ -6,11 +6,10 @@ import java.util.ArrayList;
 
 /**
  * Created by John on 12/22/16.
- * :w
- *
+ * Split images into training and testing sets
  */
 public class Images_Split {
-    private static double rate = 0.3;
+    private static double rate = 0.3; //percentage of images for testing
     public static void main(String args[]) throws IOException {
         File f = new File(System.getProperty("user.dir"), "src/main/resources/imagery/");
         String [] images = f.list();
