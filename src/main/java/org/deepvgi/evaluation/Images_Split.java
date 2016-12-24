@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * Split images into training and testing sets
  */
 public class Images_Split {
-    private static double rate = 0.3; //percentage of images for testing
+    private static double rate = 0.25; //testing images: 0.25; training images: 0.75
     public static void main(String args[]) throws IOException {
         File f = new File(System.getProperty("user.dir"), "src/main/resources/imagery/");
         String [] images = f.list();
