@@ -1,6 +1,7 @@
 <component name="ProjectDictionaryState">
   <dictionary name="john">
     <words>
+      <w>conv</w>
       <w>dimg</w>
       <w>fname</w>
       <w>iter</w>
@@ -10,6 +11,7 @@
       <w>relu</w>
       <w>scaler</w>
       <w>softmax</w>
+      <w>tanh</w>
     </words>
   </dictionary>
 </component>

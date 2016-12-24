@@ -8,6 +8,7 @@ import org.datavec.api.util.ClassPathResource;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -21,6 +22,8 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
@@ -39,7 +42,7 @@ import java.util.Random;
 public class Training {
 
     private static int numEpochs = 10;
-    private static int batchSize = 50;
+    private static int batchSize = 15;
     private static int iterations = 10;
 
     private static int tile_height;
@@ -92,15 +95,41 @@ public class Training {
                 .list()
                 .layer(0, convInit("cnn1", channels, 50, new int[]{5, 5}, new int[]{1, 1}, new int[]{0, 0}, 0))
                 .layer(1, maxPool("maxpool1", new int[]{2, 2}))
-                .layer(2, conv5x5("cnn2", 100, new int[]{5, 5}, new int[]{1, 1}, 0))
+                .layer(2, conv5x5("cnn2", 75, new int[]{5, 5}, new int[]{1, 1}, 0))
                 .layer(3, maxPool("maxool2", new int[]{2, 2}))
-                .layer(4, new DenseLayer.Builder().nOut(500).build())
+                .layer(4, new DenseLayer.Builder().nOut(100).build())
                 .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nOut(labelNum)
                         .activation("softmax")
                         .build())
                 .backprop(true).pretrain(false)
                 .cnnInputSize(tile_height, tile_width, channels).build();
+/*
+        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+            .seed(seed)
+            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+            .iterations(1)
+            .learningRate(0.006)
+            .updater(Updater.NESTEROVS).momentum(0.9)
+            .regularization(true).l2(1e-4)
+            .list()
+            .layer(0, new DenseLayer.Builder()
+                .nIn(tile_height * tile_width * 3)
+                .nOut(100)
+                .activation("relu")
+                .weightInit(WeightInit.XAVIER)
+                .build())
+            .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                .nIn(100)
+                .nOut(labelNum)
+                .activation("softmax")
+                .weightInit(WeightInit.XAVIER)
+                .build())
+            .pretrain(false).backprop(true)
+            .setInputType(InputType.convolutional(tile_height,tile_width,channels))
+            .build();
+            */
+
 
 
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
@@ -111,7 +140,21 @@ public class Training {
         storeModel(model);
 
 
+        System.out.println("******EVALUATE MODEL ON TRAIN DATA******");
+        recordReader.reset();
+        recordReader.initialize(trainData);
+        DataSetIterator iter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
+        scaler.fit(iter);
+        iter.setPreProcessor(scaler);
 
+        Evaluation eval = new Evaluation(labelNum);
+
+        while (iter.hasNext()) {
+            DataSet next = iter.next();
+            INDArray output = model.output(next.getFeatures());
+            eval.eval(next.getLabels(), output);
+        }
+        System.out.println(eval.stats());
     }
 
     private static ConvolutionLayer convInit(String name, int in, int out, int[] kernel, int[] stride, int[] pad, double bias) {
@@ -128,7 +171,7 @@ public class Training {
 
     private static SubsamplingLayer maxPool(String name, int[] kernel) {
         return new SubsamplingLayer.Builder(kernel, new int[]{2, 2}).name(name).build();
-    }
+                                                                }
 
     private static DenseLayer fullyConnected(String name, int out, double bias, double dropOut, Distribution dist) {
         return new DenseLayer.Builder().name(name).nOut(out).biasInit(bias).dropOut(dropOut).dist(dist).build();
