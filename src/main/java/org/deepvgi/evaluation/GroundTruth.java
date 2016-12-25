@@ -107,7 +107,8 @@ public class GroundTruth {
     }
 
     public static void main(String args[]) throws IOException {
-        String [] imgs ={"156407_142694_18.jpeg","156407_142696_18.jpeg",
+        String [] imgs ={
+                "156407_142694_18.jpeg","156407_142696_18.jpeg",
                 "156408_142694_18.jpeg","156409_142696_18.jpeg",
                 "156416_142695_18.jpeg","156434_142695_18.jpeg",
                 "156443_142694_18.jpeg","156448_142694_18.jpeg",
