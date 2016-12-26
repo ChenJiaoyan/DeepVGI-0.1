@@ -3,19 +3,13 @@ package org.deepvgi.evaluation;
 import org.datavec.api.util.ClassPathResource;
 import org.deepvgi.vgi.VGI_Files;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
 
 /**
  * Created by john on 24.12.16.
- * Manually label the ground truth of the testing data
+ * Interfaces for reading ground truths from the files
  */
 public class GroundTruth {
 
@@ -106,70 +100,6 @@ public class GroundTruth {
         return this.getN_test_images();
     }
 
-    public static void main(String args[]) throws IOException {
-        String [] imgs ={
-                "156407_142694_18.jpeg","156407_142696_18.jpeg",
-                "156408_142694_18.jpeg","156409_142696_18.jpeg",
-                "156416_142695_18.jpeg","156434_142695_18.jpeg",
-                "156443_142694_18.jpeg","156448_142694_18.jpeg",
-                "156448_142695_18.jpeg","156450_142695_18.jpeg",
-                "156455_142694_18.jpeg","156457_142696_18.jpeg",
-                "156458_142696_18.jpeg","156459_142694_18.jpeg",
-                "156461_142694_18.jpeg","156471_142696_18.jpeg",
-                "156472_142696_18.jpeg","156476_142696_18.jpeg",
-                "156477_142696_18.jpeg","156479_142694_18.jpeg",
-                "156481_142694_18.jpeg","156482_142694_18.jpeg",
-                "156482_142695_18.jpeg","156483_142694_18.jpeg",
-                "156484_142694_18.jpeg","156488_142695_18.jpeg",
-                "156489_142695_18.jpeg","156490_142694_18.jpeg",
-                "156494_142694_18.jpeg","156495_142694_18.jpeg",
-                "156496_142694_18.jpeg","156517_142694_18.jpeg",
-                "156539_142694_18.jpeg","156539_142695_18.jpeg",
-                "156542_142695_18.jpeg","156548_142694_18.jpeg",
-                "156548_142695_18.jpeg","156549_142694_18.jpeg",
-                "156553_142694_18.jpeg","156555_142695_18.jpeg",
-                "156558_142694_18.jpeg","156560_142695_18.jpeg",
-                "156567_142695_18.jpeg","156575_142694_18.jpeg"};
-        String img_f = "156407_142694_18.jpeg";
-        File f = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + img_f);
-        BufferedImage image = ImageIO.read(f);
-        Image dimg = image.getScaledInstance(tile_width, tile_height, Image.SCALE_SMOOTH);
-        ImageIcon icon = new ImageIcon(dimg);
-        JLabel imageLabel = new JLabel(icon);
-        imageLabel.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int x = e.getX();
-                int y = e.getY();
-                String s = img_f + ";" + x + ";" + y;
-                System.out.println(s);
-                JOptionPane.showMessageDialog(imageLabel, "x: " + x + ", y: " + y);
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-        });
-        imageLabel.validate();
-        JFrame frame = new JFrame("Image Labeling Swing");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().add(imageLabel);
-        frame.pack();
-        frame.setVisible(true);
-    }
 
 
 }
