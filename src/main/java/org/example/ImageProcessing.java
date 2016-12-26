@@ -21,6 +21,7 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -38,11 +39,28 @@ public class ImageProcessing {
     protected static int batchSize = 1;
 
     public static void main(String args[]) throws IOException {
-        int [] d = {1,2,3};
-        double [] dd = Doubles.toArray(Ints.asList(d));
-        System.out.println(Arrays.toString(dd));
-        INDArray id = Nd4j.create(dd);
-        System.out.println(id);
+
+        ArrayList<String> sa = new ArrayList<>();
+        sa.add("a");
+        sa.add("b");
+        sa.add("c");
+        ArrayList<String> ba = new ArrayList<>();
+        ba.addAll(sa);
+        System.out.println(ba.size());
+        System.out.println(ba);
+        System.out.println(sa);
+        sa.remove(0);
+        System.out.println(ba);
+        System.out.println(sa);
+        sa.remove("b");
+        System.out.println(ba);
+        System.out.println(sa);
+
+//        int [] d = {1,2,3};
+//       double [] dd = Doubles.toArray(Ints.asList(d));
+//        System.out.println(Arrays.toString(dd));
+//        INDArray id = Nd4j.create(dd);
+//        System.out.println(id);
 //        INDArray i = Nd4j.zeros(2,5);
 //        i.getRow(0).getColumn(2).assign(0.1);
 //        i.getColumn(3).assign(0.2);
