@@ -37,11 +37,11 @@ import java.util.Random;
  */
 public class Training {
 
-    private static int numEpochs = 5;
+    private static int numEpochs = 15;
     private static int batchSize = 32;
-//    private static String ann_type = "lenet";
+    private static String ann_type = "lenet";
 //    private static String ann_type = "alexnet";
-    private static String ann_type = "";
+//    private static String ann_type = "";
 
     private static int tile_height;
     private static int tile_width;
@@ -101,7 +101,6 @@ public class Training {
         while (testIter.hasNext()) {
             DataSet next = testIter.next();
             INDArray output = model.output(next.getFeatures());
-            System.out.println(output);
             eval.eval(next.getLabels(), output);
         }
         System.out.println(eval.stats());
@@ -112,27 +111,6 @@ public class Training {
         double nonZeroBias;
         double dropOut;
         switch (ann_type) {
-            case "lenet":
-                conf = new NeuralNetConfiguration.Builder()
-                        .seed(seed)
-                        .iterations(1)
-                        .regularization(false).l2(0.005) // tried 0.0001, 0.0005
-                        .activation("relu")
-                        .learningRate(0.0001) // tried 0.00001, 0.00005, 0.000001
-                        .weightInit(WeightInit.XAVIER)
-                        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                        .updater(Updater.RMSPROP).momentum(0.9)
-                        .list()
-                        .layer(0, convInit("cnn1", channels, 50, new int[]{5, 5}, new int[]{1, 1}, new int[]{0, 0}, 0))
-                        .layer(1, maxPool("maxpool1", new int[]{2, 2}))
-                        .layer(2, conv5x5("cnn2", 100, new int[]{5, 5}, new int[]{1, 1}, 0))
-                        .layer(3, maxPool("maxool2", new int[]{2, 2}))
-                        .layer(4, new DenseLayer.Builder().nOut(500).build())
-                        .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                                .nOut(labelNum).activation("softmax").build())
-                        .setInputType(InputType.convolutionalFlat(tile_height,tile_width,channels))
-                        .backprop(true).pretrain(false).build();
-                break;
             case "alexnet":
                 nonZeroBias = 1;
                 dropOut = 0.5;
@@ -165,6 +143,47 @@ public class Training {
                         .setInputType(InputType.convolutionalFlat(tile_height,tile_width,channels))
                         .backprop(true).pretrain(false).build();
                 break;
+            case "lenet":
+                nonZeroBias = 1;
+                dropOut = 0.5;
+                conf = new NeuralNetConfiguration.Builder()
+                        .seed(seed)
+                        .iterations(1)
+                        .regularization(true).l2(0.0005)
+                        .learningRate(.01)//.biasLearningRate(0.02)
+                        //.learningRateDecayPolicy(LearningRatePolicy.Inverse).lrPolicyDecayRate(0.001).lrPolicyPower(0.75)
+                        .weightInit(WeightInit.XAVIER)
+                        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                        .updater(Updater.NESTEROVS).momentum(0.9)
+                        .list()
+                        .layer(0, new ConvolutionLayer.Builder(5, 5)
+                                .nIn(channels)
+                                .stride(1, 1)
+                                .nOut(50)
+                                .activation("identity")
+                                .build())
+                        .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+                                .kernelSize(2,2)
+                                .stride(2,2)
+                                .build())
+                        .layer(2, new ConvolutionLayer.Builder(5, 5)
+                                //Note that nIn need not be specified in later layers
+                                .stride(1, 1)
+                                .nOut(50)
+                                .activation("identity")
+                                .build())
+                        .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+                                .kernelSize(2,2)
+                                .stride(2,2)
+                                .build())
+                        .layer(4, new DenseLayer.Builder().activation("relu")
+                                .nOut(500).build())
+                        .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                                .nOut(labelNum)
+                                .activation("softmax")
+                                .build())
+                        .setInputType(InputType.convolutionalFlat(tile_height,tile_width,channels)) //See note below
+                        .backprop(true).pretrain(false).build();
             default:
                 conf = new NeuralNetConfiguration.Builder()
                         .seed(seed)
