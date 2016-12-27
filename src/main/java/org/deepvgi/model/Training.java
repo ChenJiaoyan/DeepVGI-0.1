@@ -1,25 +1,19 @@
 package org.deepvgi.model;
 
-import org.datavec.api.io.filters.BalancedPathFilter;
-import org.datavec.api.io.filters.RandomPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
-import org.datavec.api.split.InputSplit;
 import org.datavec.api.util.ClassPathResource;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.distribution.Distribution;
+import org.deeplearning4j.nn.conf.distribution.GaussianDistribution;
+import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.inputs.InputType;
-import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
-import org.deeplearning4j.nn.conf.layers.DenseLayer;
-import org.deeplearning4j.nn.conf.layers.OutputLayer;
-import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
+import org.deeplearning4j.nn.conf.layers.*;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -43,9 +37,11 @@ import java.util.Random;
  */
 public class Training {
 
-    private static int numEpochs = 30;
+    private static int numEpochs = 5;
     private static int batchSize = 32;
-    private static int iterations = 1;
+//    private static String ann_type = "lenet";
+//    private static String ann_type = "alexnet";
+    private static String ann_type = "";
 
     private static int tile_height;
     private static int tile_width;
@@ -58,7 +54,7 @@ public class Training {
     private static final String[] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
     private static final Random randNumGen = new Random(seed);
 
-    public static void main(String args []) throws IOException {
+    public static void main(String args[]) throws IOException {
         model_file = "model_s1.zip";
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
@@ -74,11 +70,7 @@ public class Training {
         String filename = new ClassPathResource("/vgi_tiles/").getFile().getPath();
         File parentDir = new File(filename);
         FileSplit filesInDir = new FileSplit(parentDir, allowedExtensions, randNumGen);
-//        BalancedPathFilter pathFilter = new BalancedPathFilter(randNumGen, allowedExtensions, labelMaker);
-        RandomPathFilter pathFilter = new RandomPathFilter(randNumGen,allowedExtensions);
-        InputSplit trainData = filesInDir.sample(pathFilter)[0];
-
-        recordReader.initialize(trainData);
+        recordReader.initialize(filesInDir);
         DataSetIterator trainIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
 
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
@@ -86,7 +78,12 @@ public class Training {
         trainIter.setPreProcessor(scaler);
 
         System.out.println("****** Build Model ******");
-        MultiLayerNetwork model = new MultiLayerNetwork(ANN_config(1));
+        MultiLayerConfiguration conf = ANN_config();
+        if(conf==null){
+            System.err.println("ANN model not configured!");
+            System.exit(0);
+        }
+        MultiLayerNetwork model = new MultiLayerNetwork(conf);
         model.setListeners(new ScoreIterationListener(100));
         for (int i = 0; i < numEpochs; i++) {
             model.fit(trainIter);
@@ -94,73 +91,99 @@ public class Training {
         storeModel(model);
 
         System.out.println("******EVALUATE MODEL ON TRAIN DATA******");
-        RandomPathFilter pathFilter2 = new RandomPathFilter(randNumGen,allowedExtensions);
-        InputSplit trainData2 = filesInDir.sample(pathFilter2)[0];
         recordReader.reset();
-        recordReader.initialize(trainData2);
-        DataSetIterator iter2 = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
-        scaler.fit(iter2);
-        iter2.setPreProcessor(scaler);
+        recordReader.initialize(filesInDir);
+        DataSetIterator testIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
+        scaler.fit(testIter);
+        testIter.setPreProcessor(scaler);
 
         Evaluation eval = new Evaluation(labelNum);
-        while (iter2.hasNext()) {
-            DataSet next = iter2.next();
+        while (testIter.hasNext()) {
+            DataSet next = testIter.next();
             INDArray output = model.output(next.getFeatures());
+            System.out.println(output);
             eval.eval(next.getLabels(), output);
         }
         System.out.println(eval.stats());
     }
 
-    private static MultiLayerConfiguration ANN_config(int type){
+    private static MultiLayerConfiguration ANN_config() {
         MultiLayerConfiguration conf = null;
-        if(type==0) {
-            conf = new NeuralNetConfiguration.Builder()
-                    .seed(seed)
-                    .iterations(iterations)
-                    .regularization(false).l2(0.005) // tried 0.0001, 0.0005
-                    .activation("relu")
-                    .learningRate(0.0001) // tried 0.00001, 0.00005, 0.000001
-                    .weightInit(WeightInit.XAVIER)
-                    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .updater(Updater.RMSPROP).momentum(0.9)
-                    .list()
-                    .layer(0, convInit("cnn1", channels, 50, new int[]{5, 5}, new int[]{1, 1}, new int[]{0, 0}, 0))
-                    .layer(1, maxPool("maxpool1", new int[]{2, 2}))
-                    .layer(2, conv5x5("cnn2", 75, new int[]{5, 5}, new int[]{1, 1}, 0))
-                    .layer(3, maxPool("maxool2", new int[]{2, 2}))
-                    .layer(4, new DenseLayer.Builder().nOut(100).build())
-                    .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                            .nOut(labelNum)
-                            .activation("softmax")
-                            .build())
-                    .backprop(true).pretrain(false)
-                    .cnnInputSize(tile_height, tile_width, channels).build();
-        }
-        if(type==1){
-            conf = new NeuralNetConfiguration.Builder()
-                    .seed(seed)
-                    .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                    .iterations(1)
-                    .learningRate(0.006)
-                    .updater(Updater.NESTEROVS).momentum(0.9)
-                    .regularization(true).l2(1e-4)
-                    .list()
-                    .layer(0, new DenseLayer.Builder()
-                            .nIn(tile_height * tile_width * 3)
-                            .nOut(100)
-                            .activation("relu")
-                            .weightInit(WeightInit.XAVIER)
-                            .build())
-                    .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                            .nIn(100)
-                            .nOut(labelNum)
-                            .activation("softmax")
-                            .weightInit(WeightInit.XAVIER)
-                            .build())
-                    .pretrain(false).backprop(true)
-                    .setInputType(InputType.convolutional(tile_height,tile_width,channels))
-                    .build();
-
+        double nonZeroBias;
+        double dropOut;
+        switch (ann_type) {
+            case "lenet":
+                conf = new NeuralNetConfiguration.Builder()
+                        .seed(seed)
+                        .iterations(1)
+                        .regularization(false).l2(0.005) // tried 0.0001, 0.0005
+                        .activation("relu")
+                        .learningRate(0.0001) // tried 0.00001, 0.00005, 0.000001
+                        .weightInit(WeightInit.XAVIER)
+                        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                        .updater(Updater.RMSPROP).momentum(0.9)
+                        .list()
+                        .layer(0, convInit("cnn1", channels, 50, new int[]{5, 5}, new int[]{1, 1}, new int[]{0, 0}, 0))
+                        .layer(1, maxPool("maxpool1", new int[]{2, 2}))
+                        .layer(2, conv5x5("cnn2", 100, new int[]{5, 5}, new int[]{1, 1}, 0))
+                        .layer(3, maxPool("maxool2", new int[]{2, 2}))
+                        .layer(4, new DenseLayer.Builder().nOut(500).build())
+                        .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                                .nOut(labelNum).activation("softmax").build())
+                        .setInputType(InputType.convolutionalFlat(tile_height,tile_width,channels))
+                        .backprop(true).pretrain(false).build();
+                break;
+            case "alexnet":
+                nonZeroBias = 1;
+                dropOut = 0.5;
+                conf = new NeuralNetConfiguration.Builder()
+                        .seed(seed)
+                        .weightInit(WeightInit.DISTRIBUTION)
+                        .dist(new NormalDistribution(0.0, 0.01))
+                        .activation("relu").updater(Updater.NESTEROVS).iterations(1)
+                        .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer) // normalize to prevent vanishing or exploding gradients
+                        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                        .learningRate(1e-2).biasLearningRate(1e-2 * 2)
+                        .learningRateDecayPolicy(LearningRatePolicy.Step)
+                        .lrPolicyDecayRate(0.1).lrPolicySteps(100000)
+                        .regularization(true).l2(5 * 1e-4)
+                        .momentum(0.9).miniBatch(false).list()
+                        .layer(0, convInit("cnn1", channels, 96, new int[]{11, 11}, new int[]{4, 4}, new int[]{3, 3}, 0))
+                        .layer(1, new LocalResponseNormalization.Builder().name("lrn1").build())
+                        .layer(2, maxPool("maxpool1", new int[]{3, 3}))
+                        .layer(3, conv5x5("cnn2", 256, new int[]{1, 1}, new int[]{2, 2}, nonZeroBias))
+                        .layer(4, new LocalResponseNormalization.Builder().name("lrn2").build())
+                        .layer(5, maxPool("maxpool2", new int[]{3, 3}))
+                        .layer(6, conv3x3("cnn3", 384, 0))
+                        .layer(7, conv3x3("cnn4", 384, nonZeroBias))
+                        .layer(8, conv3x3("cnn5", 256, nonZeroBias))
+                        .layer(9, maxPool("maxpool3", new int[]{3, 3}))
+                        .layer(10, fullyConnected("ffn1", 4096, nonZeroBias, dropOut, new GaussianDistribution(0, 0.005)))
+                        .layer(11, fullyConnected("ffn2", 4096, nonZeroBias, dropOut, new GaussianDistribution(0, 0.005)))
+                        .layer(12, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                                .name("output").nOut(labelNum).activation("softmax").build())
+                        .setInputType(InputType.convolutionalFlat(tile_height,tile_width,channels))
+                        .backprop(true).pretrain(false).build();
+                break;
+            default:
+                conf = new NeuralNetConfiguration.Builder()
+                        .seed(seed)
+                        .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+                        .iterations(1)
+                        .learningRate(0.006)
+                        .updater(Updater.NESTEROVS).momentum(0.9)
+                        .regularization(true).l2(1e-4)
+                        .list()
+                        .layer(0, new DenseLayer.Builder()
+                                .nIn(tile_height * tile_width * 3).nOut(100).activation("relu")
+                                .weightInit(WeightInit.XAVIER).build())
+                        .layer(1, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                                .nIn(100).nOut(labelNum).activation("softmax")
+                                .weightInit(WeightInit.XAVIER).build())
+                        .pretrain(false).backprop(true)
+                        .setInputType(InputType.convolutional(tile_height, tile_width, channels))
+                        .build();
+                break;
         }
         return conf;
     }
@@ -179,14 +202,14 @@ public class Training {
 
     private static SubsamplingLayer maxPool(String name, int[] kernel) {
         return new SubsamplingLayer.Builder(kernel, new int[]{2, 2}).name(name).build();
-                                                                }
+    }
 
     private static DenseLayer fullyConnected(String name, int out, double bias, double dropOut, Distribution dist) {
         return new DenseLayer.Builder().name(name).nOut(out).biasInit(bias).dropOut(dropOut).dist(dist).build();
     }
 
     private static void storeModel(MultiLayerNetwork net) throws IOException {
-        File f = new File(System.getProperty("user.dir"),"src/main/resources/"+model_file);
+        File f = new File(System.getProperty("user.dir"), "src/main/resources/" + model_file);
         boolean saveUpdater = true;
         ModelSerializer.writeModel(net, f, saveUpdater);
     }
