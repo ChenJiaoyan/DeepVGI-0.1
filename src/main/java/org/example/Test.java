@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * Created by john on 21.12.16.
  */
-public class ImageProcessing {
+public class Test {
     protected static final long seed = 12345;
     protected static final String[] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
     public static final Random randNumGen = new Random(seed);
@@ -39,23 +39,8 @@ public class ImageProcessing {
     protected static int batchSize = 1;
 
     public static void main(String args[]) throws IOException {
-
-        ArrayList<String> sa = new ArrayList<>();
-        sa.add("a");
-        sa.add("b");
-        sa.add("c");
-        ArrayList<String> ba = new ArrayList<>();
-        ba.addAll(sa);
-        System.out.println(ba.size());
-        System.out.println(ba);
-        System.out.println(sa);
-        sa.remove(0);
-        System.out.println(ba);
-        System.out.println(sa);
-        sa.remove("b");
-        System.out.println(ba);
-        System.out.println(sa);
-
+        int [] d = {1,0,1,0};
+        System.out.println();
 //        int [] d = {1,2,3};
 //       double [] dd = Doubles.toArray(Ints.asList(d));
 //        System.out.println(Arrays.toString(dd));

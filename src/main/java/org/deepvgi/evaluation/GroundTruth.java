@@ -2,7 +2,6 @@ package org.deepvgi.evaluation;
 
 import org.datavec.api.util.ClassPathResource;
 import org.deepvgi.vgi.VGI_Files;
-import scala.Int;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -34,7 +33,8 @@ public class GroundTruth {
         this.p_pixels = new ArrayList<>();
 
         Properties properties = new Properties();
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().
+                getResourceAsStream("config.properties");
         properties.load(inputStream);
         this.tile_height = Integer.parseInt(properties.getProperty("tile_height"));
         this.tile_width = Integer.parseInt(properties.getProperty("tile_width"));
@@ -131,11 +131,11 @@ public class GroundTruth {
 
 
     public ArrayList<String> getP_test_images() {
-        return this.getP_test_images();
+        return this.p_test_images;
     }
 
     public ArrayList<String> getN_test_images() {
-        return this.getN_test_images();
+        return this.n_test_images;
     }
 
     public static void main(String args []) throws IOException {
