@@ -47,8 +47,10 @@ public class GroundTruth {
         String line;
         while ((line = bufferedReader.readLine()) != null) {
             String[] items = line.split(";");
-            this.p_test_images.add(items[0]);
             this.p_pixels.add(items);
+            if(!this.p_test_images.contains(items[0])) {
+                this.p_test_images.add(items[0]);
+            }
         }
         bufferedReader.close();
         read.close();
@@ -57,21 +59,33 @@ public class GroundTruth {
                 this.n_test_images.add(test_images.get(i));
             }
         }
+        System.out.println("before filtering, p_test_images: " + this.p_test_images.size());
+        System.out.println("before filtering, n_test_images: " + this.n_test_images.size());
         filter_border_test_samples();
     }
 
     private void filter_border_test_samples(){
-        ArrayList<String []> pixels_tmp = new ArrayList<>();
-        pixels_tmp.addAll(p_pixels);
-        for(int i=pixels_tmp.size()-1;i>=0;i--){
-            String [] pixel = pixels_tmp.get(i);
-            String img_name = pixel[0];
+        for(int i=p_pixels.size()-1;i>=0;i--){
+            String [] pixel = p_pixels.get(i);
             int pixel_x = Integer.parseInt(pixel[1]);
             int pixel_y = Integer.parseInt(pixel[2]);
             if(pixel_x<border_size || pixel_x >= image_width-border_size ||
                     pixel_y<border_size || pixel_y >= image_height-border_size){
                 p_pixels.remove(i);
-                p_test_images.remove(img_name);
+            }
+        }
+
+        for(int i=p_test_images.size()-1;i>=0;i--){
+            String img_name = p_test_images.get(i);
+            boolean remove = true;
+            for(int j=0;j<p_pixels.size();j++){
+                if(p_pixels.get(j)[0].equals(img_name)){
+                    remove = false;
+                    break;
+                }
+            }
+            if(remove){
+                p_test_images.remove(i);
             }
         }
     }

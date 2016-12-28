@@ -1,7 +1,5 @@
 package org.deepvgi.evaluation;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
@@ -22,7 +20,6 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,7 +33,8 @@ import java.util.Random;
  * task 2) predict the label of image with sliding window, and evaluate the model's performance
  */
 public class Predicting {
-    private static int task = 2;
+    //private static String task_type = "tile";
+    private static String task_type = "image";
     private static int batchSize = 20;
 
     private static int tile_height;
@@ -46,14 +44,16 @@ public class Predicting {
     private static int labelNum;
     private static int channels;
     private static int slide_stride;
+
     private static MultiLayerNetwork model;
+
     private static final long seed = 12345;
     private static final String[] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
     private static final Random randNumGen = new Random(seed);
 
     public static void main(String args[]) throws IOException {
 
-        System.out.println("######loading model and ground truths######");
+        System.out.println("###### loading model and ground truths ######");
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
         properties.load(inputStream);
@@ -68,13 +68,13 @@ public class Predicting {
 
         String model_file = "model_s1.zip";
         File f = new File(System.getProperty("user.dir"), "src/main/resources/" + model_file);
-        //     model = ModelSerializer.restoreMultiLayerNetwork(f);
+        model = ModelSerializer.restoreMultiLayerNetwork(f);
 
-        if (task == 1) {
-            System.out.println("######task (1): evaluate with tiles######");
+        if (task_type.equals("tile")) {
+            System.out.println("###### task (1): evaluate with tiles ######");
             tile_evaluation();
         } else {
-            System.out.println("######task (2): evaluate with images######");
+            System.out.println("###### task (2): evaluate with images ######");
             image_evaluation();
         }
     }
@@ -83,20 +83,19 @@ public class Predicting {
         File parentDir = new File(System.getProperty("user.dir"), "src/main/resources/gt_tiles/");
         FileSplit filesInDir = new FileSplit(parentDir, allowedExtensions, randNumGen);
         ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
-        BalancedPathFilter pathFilter = new BalancedPathFilter(randNumGen, allowedExtensions, labelMaker);
-        InputSplit testData = filesInDir.sample(pathFilter)[0];
-        DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         ImageRecordReader recordReader = new ImageRecordReader(tile_height, tile_width, channels, labelMaker);
-        recordReader.initialize(testData);
+        recordReader.initialize(filesInDir);
         DataSetIterator testIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
+
+        DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         scaler.fit(testIter);
         testIter.setPreProcessor(scaler);
-        System.out.println(recordReader.getLabels());
 
         Evaluation eval = new Evaluation(labelNum);
         while (testIter.hasNext()) {
             DataSet next = testIter.next();
-            INDArray output = model.output(next.getFeatureMatrix());
+            INDArray features = next.getFeatures();
+            INDArray output = model.output(features);
             eval.eval(next.getLabels(), output);
         }
         System.out.println(eval.stats());
@@ -109,6 +108,7 @@ public class Predicting {
         ArrayList<String> n_test_images = gt.getN_test_images();
         System.out.println("positive images #: " + p_test_images.size());
         System.out.println("negative images #: " + n_test_images.size());
+        System.exit(0);
         int TP = 0;
         int FN = 0;
         for (int i = 0; i < p_test_images.size(); i++) {
@@ -118,6 +118,7 @@ public class Predicting {
             } else {
                 FN += 1;
             }
+            System.out.print("Positive " + p_test_images.get(i) + ": " + p_tile_n);
         }
 
         int TN = 0;
@@ -129,6 +130,7 @@ public class Predicting {
             } else {
                 FP += 1;
             }
+            System.out.print("Negative " + n_test_images.get(i) + ": " + p_tile_n);
         }
 
         float acc = (float) (TP + TN) / (float) (TP + TN + FP + FN);
@@ -136,8 +138,8 @@ public class Predicting {
         float recall = (float) TP / (float) (TP + FN);
         float f1 = 2 * precision * recall / (precision + recall);
         System.out.println("Precision: " + precision);
-        System.out.println("recall: " + recall);
-        System.out.println("f1: " + f1);
+        System.out.println("Recall: " + recall);
+        System.out.println("F1: " + f1);
         System.out.println("Accuracy: " + acc);
     }
 
@@ -160,11 +162,9 @@ public class Predicting {
         File img = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + predict_f);
         FileSplit filesInDir = new FileSplit(img, allowedExtensions, randNumGen);
         ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
-        BalancedPathFilter pathFilter = new BalancedPathFilter(randNumGen, allowedExtensions, labelMaker);
-        InputSplit d = filesInDir.sample(pathFilter)[0];
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         ImageRecordReader recordReader = new ImageRecordReader(image_height, image_width, channels, labelMaker);
-        recordReader.initialize(d);
+        recordReader.initialize(filesInDir);
         DataSetIterator it = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
         scaler.fit(it);
         it.setPreProcessor(scaler);
@@ -173,7 +173,6 @@ public class Predicting {
         int row_n = (int) Math.ceil((image_height - tile_height) / (double) slide_stride);
         int col_n = (int) Math.ceil((image_width - tile_width) / (double) slide_stride);
         INDArray m = ds.getFeatureMatrix().getRow(0);
-        System.out.println(Arrays.toString(m.shape()));
         INDArray out = Nd4j.zeros(row_n, col_n, channels, tile_height, tile_width);
         for (int y = 0, r = 0; y < image_height - tile_height; y = y + slide_stride, r = r + 1) {
             for (int x = 0, c = 0; x < image_width - tile_width; x = x + slide_stride, c = c + 1) {

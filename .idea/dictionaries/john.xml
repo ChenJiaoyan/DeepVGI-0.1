@@ -1,10 +1,12 @@
 <component name="ProjectDictionaryState">
   <dictionary name="john">
     <words>
+      <w>alexnet</w>
       <w>conv</w>
       <w>dimg</w>
       <w>fname</w>
       <w>iter</w>
+      <w>lenet</w>
       <w>maxool</w>
       <w>maxpool</w>
       <w>nums</w>
