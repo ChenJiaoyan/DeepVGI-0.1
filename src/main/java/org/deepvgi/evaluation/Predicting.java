@@ -1,9 +1,7 @@
 package org.deepvgi.evaluation;
 
-import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
-import org.datavec.api.split.InputSplit;
 import org.datavec.api.util.ClassPathResource;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
@@ -23,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
@@ -44,6 +41,8 @@ public class Predicting {
     private static int labelNum;
     private static int channels;
     private static int slide_stride;
+    private static double decision_threshold;
+    private static int decision_num;
 
     private static MultiLayerNetwork model;
 
@@ -63,6 +62,8 @@ public class Predicting {
         image_width = Integer.parseInt(properties.getProperty("image_width"));
         labelNum = Integer.parseInt(properties.getProperty("labelNum"));
         channels = Integer.parseInt(properties.getProperty("channels"));
+        decision_threshold = Double.parseDouble(properties.getProperty("decision_threshold"));
+        decision_num = Integer.parseInt(properties.getProperty("decision_num"));
 
         slide_stride = Integer.parseInt(properties.getProperty("slide_stride"));
 
@@ -108,29 +109,28 @@ public class Predicting {
         ArrayList<String> n_test_images = gt.getN_test_images();
         System.out.println("positive images #: " + p_test_images.size());
         System.out.println("negative images #: " + n_test_images.size());
-        System.exit(0);
         int TP = 0;
         int FN = 0;
         for (int i = 0; i < p_test_images.size(); i++) {
             int p_tile_n = image_predict(p_test_images.get(i));
-            if (p_tile_n > 0) {
+            if (p_tile_n > decision_num) {
                 TP += 1;
             } else {
                 FN += 1;
             }
-            System.out.print("Positive " + p_test_images.get(i) + ": " + p_tile_n);
+            System.out.println("Positive " + p_test_images.get(i) + ": " + p_tile_n);
         }
 
         int TN = 0;
         int FP = 0;
         for (int i = 0; i < n_test_images.size(); i++) {
             int p_tile_n = image_predict(n_test_images.get(i));
-            if (p_tile_n == 0) {
+            if (p_tile_n <= decision_num) {
                 TN += 1;
             } else {
                 FP += 1;
             }
-            System.out.print("Negative " + n_test_images.get(i) + ": " + p_tile_n);
+            System.out.println("Negative " + n_test_images.get(i) + ": " + p_tile_n);
         }
 
         float acc = (float) (TP + TN) / (float) (TP + TN + FP + FN);
@@ -148,9 +148,9 @@ public class Predicting {
         int p_tile_n = 0;
         for (int r = 0; r < tiles.shape()[0]; r++) {
             INDArray tiles_r = tiles.getRow(r);
-            int[] label_int = model.predict(tiles_r);
-            for (int j = 0; j < label_int.length; j++) {
-                if (label_int[j] > 0) {
+            INDArray output = model.output(tiles_r);
+            for (int j = 0; j < output.shape()[0]; j++) {
+                if (output.getFloat(j,1) >= decision_threshold) {
                     p_tile_n++;
                 }
             }
