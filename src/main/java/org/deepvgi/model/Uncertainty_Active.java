@@ -18,7 +18,6 @@ import java.util.*;
  */
 public class Uncertainty_Active {
     private static double filtering_t = 0.55;
-    private static int top_k = 500;
 
     private static int tile_height;
     private static int tile_width;
