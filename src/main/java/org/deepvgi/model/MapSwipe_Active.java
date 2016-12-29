@@ -10,7 +10,7 @@ import java.io.IOException;
  * Created by John on 12/22/16.
  *
  */
-public class Active_Sampling {
+public class MapSwipe_Active {
     private static String sampling_type = "mapswipe";
    // private static String sampling_type = "uncertainty";
 

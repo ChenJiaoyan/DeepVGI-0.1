@@ -9,6 +9,7 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
+import org.deepvgi.vgi.VGI_Files;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -46,9 +47,9 @@ public class Predicting {
 
     private static MultiLayerNetwork model;
 
-    private static final long seed = 12345;
-    private static final String[] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
-    private static final Random randNumGen = new Random(seed);
+    private static long seed = 12345;
+    private static String[] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
+    private static Random randNumGen = new Random(seed);
 
     public static void main(String args[]) throws IOException {
 
@@ -144,7 +145,8 @@ public class Predicting {
     }
 
     private static int image_predict(String img_name) throws IOException {
-        INDArray tiles = slide(img_name);
+        INDArray tiles = VGI_Files.slide(img_name,image_height,image_width,tile_height,tile_width,slide_stride,
+                channels,labelNum,allowedExtensions,randNumGen);
         int p_tile_n = 0;
         for (int r = 0; r < tiles.shape()[0]; r++) {
             INDArray tiles_r = tiles.getRow(r);
@@ -158,29 +160,4 @@ public class Predicting {
         return p_tile_n;
     }
 
-    private static INDArray slide(String predict_f) throws IOException {
-        File img = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + predict_f);
-        FileSplit filesInDir = new FileSplit(img, allowedExtensions, randNumGen);
-        ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
-        DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
-        ImageRecordReader recordReader = new ImageRecordReader(image_height, image_width, channels, labelMaker);
-        recordReader.initialize(filesInDir);
-        DataSetIterator it = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
-        scaler.fit(it);
-        it.setPreProcessor(scaler);
-        DataSet ds = it.next();
-
-        int row_n = (int) Math.ceil((image_height - tile_height) / (double) slide_stride);
-        int col_n = (int) Math.ceil((image_width - tile_width) / (double) slide_stride);
-        INDArray m = ds.getFeatureMatrix().getRow(0);
-        INDArray out = Nd4j.zeros(row_n, col_n, channels, tile_height, tile_width);
-        for (int y = 0, r = 0; y < image_height - tile_height; y = y + slide_stride, r = r + 1) {
-            for (int x = 0, c = 0; x < image_width - tile_width; x = x + slide_stride, c = c + 1) {
-                INDArray tile = m.get(NDArrayIndex.all(), NDArrayIndex.interval(y, y + tile_height),
-                        NDArrayIndex.interval(x, x + tile_width));
-                out.get(NDArrayIndex.point(r), NDArrayIndex.point(c)).assign(tile);
-            }
-        }
-        return out;
-    }
 }

@@ -1,29 +1,9 @@
 package org.example;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-import org.datavec.api.io.filters.BalancedPathFilter;
-import org.datavec.api.io.labels.ParentPathLabelGenerator;
-import org.datavec.api.split.FileSplit;
-import org.datavec.api.split.InputSplit;
-import org.datavec.api.util.ClassPathResource;
 import org.datavec.image.loader.BaseImageLoader;
-import org.datavec.image.recordreader.ImageRecordReader;
-import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
-import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.NDArrayIndex;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by john on 21.12.16.
@@ -39,8 +19,34 @@ public class Test {
     protected static int batchSize = 1;
 
     public static void main(String args[]) throws IOException {
-        int [] d = {1,0,1,0};
-        System.out.println();
+        Map<String, Double> map = new HashMap<String, Double>();
+        map.put("d", 2.0);
+        map.put("c", 1.0);
+        map.put("b", 1.0);
+        map.put("a", 3.0);
+
+        List<Map.Entry<String, Double>> infoIds =
+                new ArrayList<Map.Entry<String, Double>>(map.entrySet());
+
+        for (int i = 0; i < infoIds.size(); i++) {
+            String id = infoIds.get(i).toString();
+            System.out.println(id.replace("=", ";"));
+        }
+
+        Collections.sort(infoIds, new Comparator<Map.Entry<String, Double>>() {
+            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
+                if (o1.getValue() - o2.getValue()>=0){
+                    return 1;
+                }else{
+                    return -1;
+                }
+            }
+        });
+
+        for (int i = 0; i < infoIds.size(); i++) {
+            String id = infoIds.get(i).toString();
+            System.out.println(id);
+        }
 //        int [] d = {1,2,3};
 //       double [] dd = Doubles.toArray(Ints.asList(d));
 //        System.out.println(Arrays.toString(dd));
