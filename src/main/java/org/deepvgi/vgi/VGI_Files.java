@@ -1,17 +1,5 @@
 package org.deepvgi.vgi;
 
-import org.datavec.api.io.labels.ParentPathLabelGenerator;
-import org.datavec.api.split.FileSplit;
-import org.datavec.image.recordreader.ImageRecordReader;
-import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.api.DataSet;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.NDArrayIndex;
-
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
@@ -22,7 +10,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Random;
 
 /**
  * Created by john on 23.12.16.
@@ -92,7 +79,8 @@ public class VGI_Files {
     }
 
     // cut a tile from src_f with the center (x,y), and save it in des_f
-    public static void cut_tile(File src_f, File des_f, int x, int y, int tile_width,int tile_height) throws IOException {
+    public static void cut_tile(File src_f, File des_f, int x, int y, int tile_width,int tile_height)
+            throws IOException {
         FileInputStream is = null;
         ImageInputStream iis = null;
         try {
@@ -114,33 +102,4 @@ public class VGI_Files {
         }
     }
 
-    public static INDArray slide(String predict_f,int image_height,int image_width,int tile_height,int tile_width,
-                                  int slide_stride,int channels,int labelNum,String[] allowedExtensions,
-                                 Random randNumGen) throws IOException {
-        int batchSize = 1;
-
-        File img = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + predict_f);
-        FileSplit filesInDir = new FileSplit(img, allowedExtensions, randNumGen);
-        ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
-        DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
-        ImageRecordReader recordReader = new ImageRecordReader(image_height, image_width, channels, labelMaker);
-        recordReader.initialize(filesInDir);
-        DataSetIterator it = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
-        scaler.fit(it);
-        it.setPreProcessor(scaler);
-        DataSet ds = it.next();
-
-        int row_n = (int) Math.ceil((image_height - tile_height) / (double) slide_stride);
-        int col_n = (int) Math.ceil((image_width - tile_width) / (double) slide_stride);
-        INDArray m = ds.getFeatures().getRow(0);
-        INDArray out = Nd4j.zeros(row_n, col_n, channels, tile_height, tile_width);
-        for (int y = 0, r = 0; y < image_height - tile_height; y = y + slide_stride, r = r + 1) {
-            for (int x = 0, c = 0; x < image_width - tile_width; x = x + slide_stride, c = c + 1) {
-                INDArray tile = m.get(NDArrayIndex.all(), NDArrayIndex.interval(y, y + tile_height),
-                        NDArrayIndex.interval(x, x + tile_width));
-                out.get(NDArrayIndex.point(r), NDArrayIndex.point(c)).assign(tile);
-            }
-        }
-        return out;
-    }
 }

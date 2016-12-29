@@ -3,6 +3,7 @@ package org.deepvgi.model;
 import org.datavec.image.loader.BaseImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
+import org.deepvgi.evaluation.Predicting;
 import org.deepvgi.vgi.VGI_Files;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
@@ -21,17 +22,10 @@ public class Uncertainty_Active {
 
     private static int tile_height;
     private static int tile_width;
-    private static int image_height;
-    private static int image_width;
-    private static int labelNum;
-    private static int channels;
     private static int slide_stride;
     private static MultiLayerNetwork model;
     private static HashMap<String,Double> results = new HashMap<>();
 
-    private static final long seed = 12345;
-    private static final String[] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
-    private static final Random randNumGen = new Random(seed);
 
     public static void main(String args []) throws IOException {
         String model_file = "model_s1.zip";
@@ -42,10 +36,6 @@ public class Uncertainty_Active {
         properties.load(inputStream);
         tile_height = Integer.parseInt(properties.getProperty("tile_height"));
         tile_width = Integer.parseInt(properties.getProperty("tile_width"));
-        image_height = Integer.parseInt(properties.getProperty("image_height"));
-        image_width = Integer.parseInt(properties.getProperty("image_width"));
-        labelNum = Integer.parseInt(properties.getProperty("labelNum"));
-        channels = Integer.parseInt(properties.getProperty("channels"));
         slide_stride = Integer.parseInt(properties.getProperty("slide_stride"));
 
         ArrayList<String> images = VGI_Files.loadImageName("train");
@@ -58,8 +48,7 @@ public class Uncertainty_Active {
 
     private static int uncertainty_resampling(String img_name) throws IOException {
         int num = 0;
-        INDArray tiles = VGI_Files.slide(img_name,image_height,image_width,tile_height,tile_width,slide_stride,
-               channels,labelNum,allowedExtensions,randNumGen);
+        INDArray tiles = new Predicting().slide(img_name);
         for (int r = 0; r < tiles.shape()[0]; r++) {
             INDArray tiles_r = tiles.getRow(r);
             INDArray output = model.output(tiles_r);
