@@ -35,6 +35,7 @@ public class MapSwipe_Active {
             String img_name = images.get(i);
             boolean positive = has_building_by_mapswipe(img_name);
             int p_tile_n = p.image_predict(img_name);
+            System.out.println(img_name + ", " + positive + ", " + p_tile_n);
             if(positive && p_tile_n <= positive_filter_threshold){
                 positive_active_samples.put(img_name,p_tile_n);
             }

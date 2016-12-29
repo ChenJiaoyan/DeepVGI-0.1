@@ -2,6 +2,8 @@ package org.example;
 
 import org.datavec.image.loader.BaseImageLoader;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -19,34 +21,21 @@ public class Test {
     protected static int batchSize = 1;
 
     public static void main(String args[]) throws IOException {
-        Map<String, Double> map = new HashMap<String, Double>();
-        map.put("d", 2.0);
-        map.put("c", 1.0);
-        map.put("b", 1.0);
-        map.put("a", 3.0);
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        map.put("d", 2);
+        map.put("c", 1);
+        map.put("b", 1);
+        map.put("a", 3);
 
-        List<Map.Entry<String, Double>> infoIds =
-                new ArrayList<Map.Entry<String, Double>>(map.entrySet());
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(map.entrySet());
+        Collections.sort(entries, (o1, o2) -> o1.getValue() - o2.getValue());
 
-        for (int i = 0; i < infoIds.size(); i++) {
-            String id = infoIds.get(i).toString();
-            System.out.println(id.replace("=", ";"));
+        for (int i = 0; i < entries.size(); i++) {
+            String entry = entries.get(i).toString();
+            System.out.println(entry.replace("=",";"));
         }
 
-        Collections.sort(infoIds, new Comparator<Map.Entry<String, Double>>() {
-            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-                if (o1.getValue() - o2.getValue()>=0){
-                    return 1;
-                }else{
-                    return -1;
-                }
-            }
-        });
 
-        for (int i = 0; i < infoIds.size(); i++) {
-            String id = infoIds.get(i).toString();
-            System.out.println(id);
-        }
 //        int [] d = {1,2,3};
 //       double [] dd = Doubles.toArray(Ints.asList(d));
 //        System.out.println(Arrays.toString(dd));
