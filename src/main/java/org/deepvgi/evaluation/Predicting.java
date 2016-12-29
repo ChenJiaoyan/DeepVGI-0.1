@@ -48,7 +48,6 @@ public class Predicting {
     private Random randNumGen;
 
 
-
     public static void main(String args[]) throws IOException {
         // String task_type = "tile";
         String task_type = "image";
@@ -161,7 +160,7 @@ public class Predicting {
             INDArray tiles_r = tiles.getRow(r);
             INDArray output = model.output(tiles_r);
             for (int j = 0; j < output.shape()[0]; j++) {
-                if (output.getFloat(j,1) >= decision_threshold) {
+                if (output.getFloat(j, 1) >= decision_threshold) {
                     p_tile_n++;
                 }
             }
@@ -169,7 +168,7 @@ public class Predicting {
         return p_tile_n;
     }
 
-    public  INDArray slide(String predict_f) throws IOException {
+    public INDArray slide(String predict_f) throws IOException {
         int batchSize = 1;
 
         File img = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + predict_f);
@@ -197,4 +196,20 @@ public class Predicting {
         return out;
     }
 
+    public MultiLayerNetwork getModel() {
+        return this.model;
+    }
+
+    public int getSlide_stride() {
+        return this.slide_stride;
+    }
+
+    public int getTile_height() {
+        return this.tile_height;
+    }
+
+    public int getTile_width() {
+        return this.tile_width;
+    }
 }
+

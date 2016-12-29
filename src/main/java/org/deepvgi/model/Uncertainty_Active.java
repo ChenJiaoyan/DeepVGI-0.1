@@ -20,23 +20,12 @@ import java.util.*;
 public class Uncertainty_Active {
     private static double filtering_t = 0.55;
 
-    private static int tile_height;
-    private static int tile_width;
-    private static int slide_stride;
-    private static MultiLayerNetwork model;
-    private static HashMap<String,Double> results = new HashMap<>();
+    private static Predicting p;
+    private static HashMap<String,Double> active_samples = new HashMap<>();
 
 
     public static void main(String args []) throws IOException {
-        String model_file = "model_s1.zip";
-        File f = new File(System.getProperty("user.dir"), "src/main/resources/" + model_file);
-        model = ModelSerializer.restoreMultiLayerNetwork(f);
-        Properties properties = new Properties();
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
-        properties.load(inputStream);
-        tile_height = Integer.parseInt(properties.getProperty("tile_height"));
-        tile_width = Integer.parseInt(properties.getProperty("tile_width"));
-        slide_stride = Integer.parseInt(properties.getProperty("slide_stride"));
+        p = new Predicting();
 
         ArrayList<String> images = VGI_Files.loadImageName("train");
         for(int i=0;i<images.size();i++){
@@ -48,20 +37,20 @@ public class Uncertainty_Active {
 
     private static int uncertainty_resampling(String img_name) throws IOException {
         int num = 0;
-        INDArray tiles = new Predicting().slide(img_name);
+        INDArray tiles = p.slide(img_name);
         for (int r = 0; r < tiles.shape()[0]; r++) {
             INDArray tiles_r = tiles.getRow(r);
-            INDArray output = model.output(tiles_r);
+            INDArray output = p.getModel().output(tiles_r);
             for (int c = 0; c < output.shape()[0]; c++) {
                 double max_p = output.getFloat(c,0)>output.getFloat(c,1)?
                         output.getFloat(c,0):output.getFloat(c,1);
                 if (max_p < filtering_t ) {
                     num += 1;
-                    int pixel_x = c*slide_stride + tile_width/2;
-                    int pixel_y = r*slide_stride + tile_height/2;
+                    int pixel_x = c*p.getSlide_stride() + p.getTile_width()/2;
+                    int pixel_y = r*p.getSlide_stride() + p.getTile_height()/2;
                     String [] tmp = img_name.split("_");
                     String sample_f = tmp[0] + "_" + tmp[1] + "_" + pixel_x + "_" + pixel_y + ".jpeg";
-                    results.put(sample_f,max_p);
+                    active_samples.put(sample_f,max_p);
                 }
             }
         }
@@ -69,7 +58,7 @@ public class Uncertainty_Active {
     }
 
     private static void sort_store() throws IOException {
-        List<Map.Entry<String, Double>> entries = new ArrayList<>(results.entrySet());
+        List<Map.Entry<String, Double>> entries = new ArrayList<>(active_samples.entrySet());
         Collections.sort(entries, (o1, o2) -> {
             if (o1.getValue() - o2.getValue()>=0){
                 return 1;
