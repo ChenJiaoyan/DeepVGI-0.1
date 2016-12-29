@@ -5,4 +5,7 @@ package org.deepvgi.model;
  *
  */
 public class Active_Sampling {
+    public static void main(String args []){
+
+    }
 }
