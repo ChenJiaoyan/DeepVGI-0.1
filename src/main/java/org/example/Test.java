@@ -1,6 +1,7 @@
 package org.example;
 
 import org.datavec.image.loader.BaseImageLoader;
+import play.mvc.WebSocket;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -28,11 +29,11 @@ public class Test {
         map.put("a", 3);
 
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(map.entrySet());
-        Collections.sort(entries, (o1, o2) -> o1.getValue() - o2.getValue());
+        Collections.sort(entries, (o1, o2) -> o2.getValue() - o1.getValue());
 
         for (int i = 0; i < entries.size(); i++) {
-            String entry = entries.get(i).toString();
-            System.out.println(entry.replace("=",";"));
+            Map.Entry<String,Integer> entry = entries.get(i);
+            System.out.println(entry.getKey() + ":"+ entry.getValue());
         }
 
 

@@ -1,4 +1,4 @@
-package org.deepvgi.model;
+package org.deepvgi.active_learning;
 
 import org.datavec.image.loader.BaseImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;

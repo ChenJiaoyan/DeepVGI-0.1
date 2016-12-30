@@ -211,5 +211,8 @@ public class Predicting {
     public int getTile_width() {
         return this.tile_width;
     }
+    public double getDecision_threshold(){
+        return this.decision_threshold;
+    }
 }
 
