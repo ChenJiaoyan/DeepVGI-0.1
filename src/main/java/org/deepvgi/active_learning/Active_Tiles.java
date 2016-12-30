@@ -11,7 +11,7 @@ import java.util.Properties;
  * Generate batches of actively sampled tiles
  */
 public class Active_Tiles {
-    private static int batch_num = 10;
+    private static int batch_num = 15;
     private static int active_batch_size;
 
     private static int tile_height;
@@ -51,8 +51,8 @@ public class Active_Tiles {
             String img_f = pixel[0] + "_" + pixel[1] + "_18.jpeg";
             File src_f = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + img_f);
             File des_f = new File(System.getProperty("user.dir"),
-                    "src/main/resources/mapswipe_active_tiles/" + type + "/" + pixel[0] + "_" +
-                            pixel[1] + "_" + pixel[2] + "_" + pixel[3] + "_batch" + i + ".jpeg");
+                    "src/main/resources/mapswipe_active_tiles/" + type + "/" + "batch" + i + "_" + pixel[0] + "_" +
+                            pixel[1] + "_" + pixel[2] + "_" + pixel[3] + ".jpeg");
             VGI_Files.cut_tile(src_f, des_f, pixel[2], pixel[3], tile_width, tile_height);
             num += 1;
         }
