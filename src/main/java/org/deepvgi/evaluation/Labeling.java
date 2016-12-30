@@ -27,7 +27,7 @@ public class Labeling {
         image_height = Integer.parseInt(properties.getProperty("image_height"));
         image_width = Integer.parseInt(properties.getProperty("image_width"));
 
-        String img_f = "156943_142695_18.jpeg";
+        String img_f = "156918_142693_18.jpeg";
         File f = new File(System.getProperty("user.dir"), "src/main/resources/imagery/" + img_f);
         BufferedImage image = ImageIO.read(f);
 

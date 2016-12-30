@@ -59,7 +59,7 @@ public class MapSwipe_Active {
     private static int negative_active_sampling_pixels() throws IOException {
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(negative_active_samples.entrySet());
         Collections.sort(entries, (o1, o2) -> o2.getValue() - o1.getValue());
-        File f = new File(System.getProperty("user.dir"), "src/main/resources/error_I_images_topixels");
+        File f = new File(System.getProperty("user.dir"), "src/main/resources/error_I_images_pixels");
         FileWriter writer = new FileWriter(f);
         int num = 0;
         for (int i = 0; i < entries.size(); i++) {
