@@ -16,10 +16,10 @@ import java.util.*;
 
 public class MapSwipe_Active {
 
-    private static int positive_filter_threshold = 1;
-    private static int negative_filter_threshold = 60;
+    private static int positive_filter_threshold = 2;
+    private static int negative_filter_threshold = 50;
 
-    private static int num_per_negative_image = 5;
+    private static int num_per_negative_image = 10;
 
     private static HashMap<String, Integer> positive_active_samples = new HashMap<>();
     private static HashMap<String, Integer> negative_active_samples = new HashMap<>();
@@ -46,21 +46,22 @@ public class MapSwipe_Active {
                 negative_active_samples.put(img_name, p_tile_n);
             }
         }
-        sort_store(positive_active_samples, "positive_active_samples", true);
-        sort_store(negative_active_samples, "negative_active_samples", false);
-        System.out.println("positive active_learning samples #: " + positive_active_samples.size());
-        System.out.println("negative active_learning samples #: " + negative_active_samples.size());
+        sort_store(positive_active_samples, "error_II_images", true);
+        sort_store(negative_active_samples, "error_I_images", false);
+        System.out.println("(type II error) positive active_learning samples #: " + positive_active_samples.size());
+        System.out.println("(type I error) negative active_learning samples #: " + negative_active_samples.size());
 
         System.out.println("#### Sampling " + num_per_negative_image + " pixels from each type I error image ####");
-        negative_active_sampling_pixels();
+        int num = negative_active_sampling_pixels();
+        System.out.println(num + " pixels resampled from type I error image");
     }
 
-    private static void negative_active_sampling_pixels() throws IOException {
+    private static int negative_active_sampling_pixels() throws IOException {
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(negative_active_samples.entrySet());
         Collections.sort(entries, (o1, o2) -> o2.getValue() - o1.getValue());
-        File f = new File(System.getProperty("user.dir"), "src/main/resources/uncertainty_active_samples_pixels");
+        File f = new File(System.getProperty("user.dir"), "src/main/resources/error_I_images_topixels");
         FileWriter writer = new FileWriter(f);
-
+        int num = 0;
         for (int i = 0; i < entries.size(); i++) {
             Map.Entry<String, Integer> entry = entries.get(i);
             String img_name = entry.getKey();
@@ -75,39 +76,34 @@ public class MapSwipe_Active {
                         int pixel_x = c * p.getSlide_stride() + p.getTile_width() / 2;
                         int pixel_y = r * p.getSlide_stride() + p.getTile_height() / 2;
                         String[] tmp = img_name.split("_");
-                        String sample_f = tmp[0] + "_" + tmp[1] + "_" + pixel_x + "_" + pixel_y + ".jpeg";
+                        String sample_f = tmp[0] + ";" + tmp[1] + ";" + pixel_x + ";" + pixel_y;
                         tmp_samples.put(sample_f, positive_p);
                     }
                 }
             }
-            List<Map.Entry<String, Double>> entries2 = new ArrayList<>(tmp_samples.entrySet());
-            Collections.sort(entries2, (o1, o2) -> {
+            List<Map.Entry<String, Double>> tmp_entries = new ArrayList<>(tmp_samples.entrySet());
+            Collections.sort(tmp_entries, (o1, o2) -> {
                 if (o2.getValue() - o1.getValue()>=0){
                     return 1;
                 }else{
                     return -1;
                 }
             });
-            for(int j=0;j<entries2.size() && j<num_per_negative_image;j++){
-                writer.write(entries2.get(j).getKey() + ";" + entries2.get(j).getValue());
+            for(int j=0;j<tmp_entries.size() && j<num_per_negative_image;j++){
+                writer.write(tmp_entries.get(j).getKey() + ";" + tmp_entries.get(j).getValue() + "\n");
+                num += 1;
             }
         }
         writer.flush();
         writer.close();
+        return num;
     }
 
     private static boolean has_building_by_mapswipe(String img_name) {
         String[] tmp = img_name.split("_");
         String k = tmp[0] + "_" + tmp[1];
         if (mapswipe_labels.containsKey(k)) {
-            int[] v = mapswipe_labels.get(k);
-            int yes_count = v[0];
-            int maybe_count = v[1];
-            if (yes_count == 0 && maybe_count <= 1) {
-                return false;
-            } else {
-                return true;
-            }
+            return true;
         } else {
             return false;
         }
