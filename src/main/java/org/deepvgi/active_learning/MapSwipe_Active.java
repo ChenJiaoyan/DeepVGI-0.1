@@ -76,7 +76,7 @@ public class MapSwipe_Active {
                         int pixel_x = c * p.getSlide_stride() + p.getTile_width() / 2;
                         int pixel_y = r * p.getSlide_stride() + p.getTile_height() / 2;
                         String[] tmp = img_name.split("_");
-                        String sample_f = tmp[0] + ";" + tmp[1] + ";" + pixel_x + ";" + pixel_y;
+                        String sample_f = tmp[0] + "_" + tmp[1] + "_18.jpeg;" + pixel_x + ";" + pixel_y;
                         tmp_samples.put(sample_f, positive_p);
                     }
                 }
