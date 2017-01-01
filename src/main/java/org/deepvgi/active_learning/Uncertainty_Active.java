@@ -18,7 +18,10 @@ import java.util.*;
  * Actively resample tiles in order of uncertainty
  */
 public class Uncertainty_Active {
-    private static double filtering_t = 0.55;
+    private static double filtering_t = 0.505;
+
+    private static int max_num_per_image = 2;
+    private static int max_num = 100;
 
     private static Predicting p;
     private static HashMap<String,Double> active_samples = new HashMap<>();
@@ -28,9 +31,14 @@ public class Uncertainty_Active {
         p = new Predicting();
 
         ArrayList<String> images = VGI_Files.loadImageName("train");
+        int num = 0;
         for(int i=0;i<images.size();i++){
+            if(num+max_num_per_image > max_num){
+                break;
+            }
             int n = uncertainty_resampling(images.get(i));
             System.out.println(images.get(i) + ": " + n + " tiles actively sampled");
+            num += n;
         }
         sort_store();
     }
@@ -51,6 +59,9 @@ public class Uncertainty_Active {
                     String [] tmp = img_name.split("_");
                     String sample_f = tmp[0] + "_" + tmp[1] + "_" + pixel_x + "_" + pixel_y + ".jpeg";
                     active_samples.put(sample_f,max_p);
+                    if(num>=max_num_per_image){
+                        return num;
+                    }
                 }
             }
         }

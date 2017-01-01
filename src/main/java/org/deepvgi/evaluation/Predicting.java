@@ -7,6 +7,7 @@ import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.eval.ROC;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -49,7 +50,7 @@ public class Predicting {
 
 
     public static void main(String args[]) throws IOException {
-        // String task_type = "tile";
+    //    String task_type = "tile";
         String task_type = "image";
 
         System.out.println("###### loading model and ground truths ######");
@@ -103,13 +104,16 @@ public class Predicting {
         testIter.setPreProcessor(scaler);
 
         Evaluation eval = new Evaluation(labelNum);
+        ROC roc = new ROC(100);
         while (testIter.hasNext()) {
             DataSet next = testIter.next();
             INDArray features = next.getFeatures();
             INDArray output = model.output(features);
-            eval.eval(next.getLabels(), output);
+            eval.eval(next.getLabels(),output);
+            roc.eval(next.getLabels(),output);
         }
         System.out.println(eval.stats());
+        System.out.println("AUC: " + roc.calculateAUC());
     }
 
     public void image_evaluation() throws IOException {

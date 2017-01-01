@@ -10,8 +10,8 @@ import java.util.Properties;
  * Created by John on 12/30/16.
  * Generate batches of actively sampled tiles
  */
-public class Active_Tiles {
-    private static int batch_num = 15;
+public class MapSwipe_Cut_Tiles {
+    private static int batch_num = 10;
     private static int active_batch_size;
 
     private static int tile_height;

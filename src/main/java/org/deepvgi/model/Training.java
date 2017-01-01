@@ -38,7 +38,7 @@ import java.util.Random;
 public class Training {
 
     private static int numEpochs = 30;
-    private static int batchSize = 32;
+    private static int batchSize = 45;
     private static String ann_type = "lenet";
 //    private static String ann_type = "alexnet";
 //    private static String ann_type = "";
@@ -55,7 +55,7 @@ public class Training {
     private static final Random randNumGen = new Random(seed);
 
     public static void main(String args[]) throws IOException {
-        model_file = "model_s1.zip";
+        model_file = "model_s4_batch2_3.zip";
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
         properties.load(inputStream);
@@ -101,6 +101,7 @@ public class Training {
         while (testIter.hasNext()) {
             DataSet next = testIter.next();
             INDArray output = model.output(next.getFeatures());
+
             eval.eval(next.getLabels(), output);
         }
         System.out.println(eval.stats());

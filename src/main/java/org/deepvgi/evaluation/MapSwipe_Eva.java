@@ -36,7 +36,7 @@ public class MapSwipe_Eva {
                 int yes_count = v[0];
                 int maybe_count = v[1];
                 int bay_imagery_count = v[2];
-                if (yes_count >= 1 && maybe_count <= 3 && bay_imagery_count == 0) {
+                if (yes_count >= 2 && bay_imagery_count == 0) {
                     TP += 1;
                 } else {
                     FN += 1;
@@ -55,7 +55,7 @@ public class MapSwipe_Eva {
                 int[] v = mapswipe.get(k);
                 int yes_count = v[0];
                 int maybe_count = v[1];
-                if(yes_count==0 && maybe_count <=1){
+                if(yes_count==0 && maybe_count <=2){
                     TN += 1;
                 }else{
                     FP += 1;

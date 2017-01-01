@@ -19,7 +19,7 @@ public class MapSwipe_Active {
     private static int positive_filter_threshold = 2;
     private static int negative_filter_threshold = 50;
 
-    private static int num_per_negative_image = 10;
+    private static int num_per_negative_image = 2;
 
     private static HashMap<String, Integer> positive_active_samples = new HashMap<>();
     private static HashMap<String, Integer> negative_active_samples = new HashMap<>();
@@ -67,6 +67,7 @@ public class MapSwipe_Active {
             String img_name = entry.getKey();
             INDArray tiles = p.slide(img_name);
             HashMap<String,Double> tmp_samples = new HashMap<>();
+
             for (int r = 0; r < tiles.shape()[0]; r++) {
                 INDArray tiles_r = tiles.getRow(r);
                 INDArray output = p.getModel().output(tiles_r);
@@ -81,6 +82,7 @@ public class MapSwipe_Active {
                     }
                 }
             }
+
             List<Map.Entry<String, Double>> tmp_entries = new ArrayList<>(tmp_samples.entrySet());
             Collections.sort(tmp_entries, (o1, o2) -> {
                 if (o2.getValue() - o1.getValue()>=0){
