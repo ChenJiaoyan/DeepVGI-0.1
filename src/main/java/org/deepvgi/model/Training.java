@@ -55,7 +55,7 @@ public class Training {
     private static final Random randNumGen = new Random(seed);
 
     public static void main(String args[]) throws IOException {
-        model_file = "model_s4_batch2_3.zip";
+        model_file = "model_s4_batch4_5.zip";
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
         properties.load(inputStream);

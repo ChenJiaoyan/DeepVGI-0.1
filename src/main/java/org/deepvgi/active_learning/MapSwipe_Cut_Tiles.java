@@ -31,8 +31,10 @@ public class MapSwipe_Cut_Tiles {
         image_width = Integer.parseInt(properties.getProperty("image_width"));
         active_batch_size = Integer.parseInt(properties.getProperty("active_batch_size"));
 
-        ArrayList<Integer[]> error_I_pixels = read_error_images_pixels("I");
-        ArrayList<Integer[]> error_II_pixels = read_error_images_pixels("II");
+        ArrayList<Integer[]> error_I_pixels = read_error_images_pixels("error_I_images_pixels",
+                image_height,image_width,tile_height,tile_width);
+        ArrayList<Integer[]> error_II_pixels = read_error_images_pixels("error_II_images_pixels",
+                image_height,image_width,tile_height,tile_width);
         System.out.println("error I pixels #: " + error_I_pixels.size());
         System.out.println("error II pixels #: " + error_II_pixels.size());
 
@@ -60,9 +62,12 @@ public class MapSwipe_Cut_Tiles {
     }
 
 
-    private static ArrayList<Integer[]> read_error_images_pixels(String error_type) throws IOException {
+    public static ArrayList<Integer[]> read_error_images_pixels(String filename,int image_height,
+                                                                 int image_width,
+                                                                 int tile_height,int tile_width)
+            throws IOException {
         ArrayList<Integer[]> pixels = new ArrayList<>();
-        File f = new File(System.getProperty("user.dir"), "src/main/resources/error_" + error_type + "_images_pixels");
+        File f = new File(System.getProperty("user.dir"), "src/main/resources/" + filename);
         InputStreamReader read = new InputStreamReader(new FileInputStream(f));
         BufferedReader bufferedReader = new BufferedReader(read);
         String line;

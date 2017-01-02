@@ -57,7 +57,7 @@ public class Uncertainty_Active {
                     int pixel_x = c*p.getSlide_stride() + p.getTile_width()/2;
                     int pixel_y = r*p.getSlide_stride() + p.getTile_height()/2;
                     String [] tmp = img_name.split("_");
-                    String sample_f = tmp[0] + "_" + tmp[1] + "_" + pixel_x + "_" + pixel_y + ".jpeg";
+                    String sample_f = tmp[0] + "_" + tmp[1] + "_18.jpeg;" + pixel_x+";"+pixel_y;
                     active_samples.put(sample_f,max_p);
                     if(num>=max_num_per_image){
                         return num;
