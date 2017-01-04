@@ -28,6 +28,8 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
@@ -55,8 +57,8 @@ public class Training {
     private static final Random randNumGen = new Random(seed);
 
     public static void main(String args[]) throws IOException {
-//        model_file = "model_u_1.zip";
-        model_file = args[0];
+        model_file = "model_u_1.zip";
+//        model_file = args[0];
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
         properties.load(inputStream);
@@ -73,6 +75,14 @@ public class Training {
         FileSplit filesInDir = new FileSplit(parentDir, allowedExtensions, randNumGen);
         recordReader.initialize(filesInDir);
         DataSetIterator trainIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
+
+        File p_dir = new File(filename + "/positive");
+        System.out.println("positive: ");
+        System.out.println(Arrays.toString(p_dir.listFiles()));
+
+        File n_dir = new File(filename + "/negative");
+        System.out.println("negative: ");
+        System.out.println(Arrays.toString(n_dir.listFiles()));
 
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         scaler.fit(trainIter);
