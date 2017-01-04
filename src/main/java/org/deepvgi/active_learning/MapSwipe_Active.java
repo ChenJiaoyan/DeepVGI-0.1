@@ -28,8 +28,8 @@ public class MapSwipe_Active {
     private static HashMap<String, int[]> mapswipe_labels;
 
     public static void main(String args[]) throws IOException {
-
-        p = new Predicting();
+        String model_file = args[0];
+        p = new Predicting(model_file);
         mapswipe_labels = VGI_Files.loadMapSwipeLabel();
 
         ArrayList<String> images = VGI_Files.loadImageName("train");
