@@ -82,7 +82,7 @@ public class Predicting {
 
         slide_stride = Integer.parseInt(properties.getProperty("slide_stride"));
 
-        String model_file = "model_s4_batch4_5.zip";
+        String model_file = "model.zip";
         File f = new File(System.getProperty("user.dir"), "src/main/resources/" + model_file);
         model = ModelSerializer.restoreMultiLayerNetwork(f);
 
