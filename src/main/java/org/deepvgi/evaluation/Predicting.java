@@ -50,11 +50,13 @@ public class Predicting {
 
 
     public static void main(String args[]) throws IOException {
+        String model_file = args[0];
     //    String task_type = "tile";
-        String task_type = "image";
+   //     String task_type = "image";
+        String task_type = args[1];
 
         System.out.println("###### loading model and ground truths ######");
-        Predicting p = new Predicting();
+        Predicting p = new Predicting(model_file);
 
         if (task_type.equals("tile")) {
             System.out.println("###### task (1): evaluate with tiles ######");
@@ -65,7 +67,7 @@ public class Predicting {
         }
     }
 
-    public Predicting() throws IOException {
+    public Predicting(String model_file) throws IOException {
         batchSize = 20;
 
         Properties properties = new Properties();
@@ -82,7 +84,6 @@ public class Predicting {
 
         slide_stride = Integer.parseInt(properties.getProperty("slide_stride"));
 
-        String model_file = "model.zip";
         File f = new File(System.getProperty("user.dir"), "src/main/resources/" + model_file);
         model = ModelSerializer.restoreMultiLayerNetwork(f);
 
