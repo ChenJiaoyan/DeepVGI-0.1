@@ -55,7 +55,7 @@ public class Training {
     private static final Random randNumGen = new Random(seed);
 
     public static void main(String args[]) throws IOException {
-        model_file = "model_s4_batch4_5.zip";
+        model_file = "model.zip";
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
         properties.load(inputStream);
@@ -185,6 +185,7 @@ public class Training {
                                 .build())
                         .setInputType(InputType.convolutionalFlat(tile_height,tile_width,channels)) //See note below
                         .backprop(true).pretrain(false).build();
+                break;
             default:
                 conf = new NeuralNetConfiguration.Builder()
                         .seed(seed)
