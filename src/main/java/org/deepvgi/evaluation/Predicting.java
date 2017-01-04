@@ -137,7 +137,7 @@ public class Predicting {
             }
             System.out.println("Positive " + p_test_images.get(i) + ": " + p_tile_n);
         }
-
+        System.out.println("TP: " + TP + "; FN: " + FN);
         int TN = 0;
         int FP = 0;
         for (int i = 0; i < n_test_images.size(); i++) {
@@ -149,6 +149,7 @@ public class Predicting {
             }
             System.out.println("Negative " + n_test_images.get(i) + ": " + p_tile_n);
         }
+        System.out.println("TN: " + TN + "; FN: " + FP);
 
         float acc = (float) (TP + TN) / (float) (TP + TN + FP + FN);
         float precision = (float) TP / (float) (TP + FP);
