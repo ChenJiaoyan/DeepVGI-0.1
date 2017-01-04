@@ -118,6 +118,8 @@ public class Predicting {
     }
 
     public void image_evaluation() throws IOException {
+        System.out.println("decision threshold: " + this.decision_threshold);
+        System.out.println("slide_stride: " + this.slide_stride);
         String gt_file = new ClassPathResource("ground_truths").getFile().getPath();
         GroundTruth gt = new GroundTruth(new File(gt_file));
         ArrayList<String> p_test_images = gt.getP_test_images();
