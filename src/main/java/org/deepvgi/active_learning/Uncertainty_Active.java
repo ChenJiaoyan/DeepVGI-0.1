@@ -28,8 +28,11 @@ public class Uncertainty_Active {
 
 
     public static void main(String args []) throws IOException {
+        System.out.println("Parameters: " + Arrays.toString(args));
         String model_file = args[0];
-        p = new Predicting(model_file);
+        double decision_threshold = Double.parseDouble(args[1]);
+        int slide_stride = Integer.parseInt(args[2]);
+        p = new Predicting(model_file,decision_threshold,slide_stride);
 
         ArrayList<String> images = VGI_Files.loadImageName("train");
         int num = 0;
