@@ -39,8 +39,8 @@ import java.util.Random;
  */
 public class Training {
 
-    private static int numEpochs = 30;
-    private static int batchSize = 45;
+    private static int numEpochs = 10;
+    private static int batchSize = 32;
     private static String ann_type = "lenet";
 //    private static String ann_type = "alexnet";
 //    private static String ann_type = "";
