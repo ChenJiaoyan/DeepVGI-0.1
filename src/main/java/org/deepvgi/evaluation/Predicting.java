@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
@@ -50,13 +51,16 @@ public class Predicting {
 
 
     public static void main(String args[]) throws IOException {
+        System.out.println("Parameters: " + Arrays.toString(args));
         String model_file = args[0];
     //    String task_type = "tile";
    //     String task_type = "image";
         String task_type = args[1];
+        double decision_threshold = Double.parseDouble(args[2]);
+        int slide_stride = Integer.parseInt(args[3]);
 
         System.out.println("###### loading model and ground truths ######");
-        Predicting p = new Predicting(model_file);
+        Predicting p = new Predicting(model_file,decision_threshold,slide_stride);
 
         if (task_type.equals("tile")) {
             System.out.println("###### task (1): evaluate with tiles ######");
@@ -67,7 +71,10 @@ public class Predicting {
         }
     }
 
-    public Predicting(String model_file) throws IOException {
+    public Predicting(String model_file,double decision_threshold,int slide_stride) throws IOException {
+        this.decision_threshold = decision_threshold;
+        this.slide_stride = slide_stride;
+
         batchSize = 20;
 
         Properties properties = new Properties();
@@ -79,10 +86,8 @@ public class Predicting {
         image_width = Integer.parseInt(properties.getProperty("image_width"));
         labelNum = Integer.parseInt(properties.getProperty("labelNum"));
         channels = Integer.parseInt(properties.getProperty("channels"));
-        decision_threshold = Double.parseDouble(properties.getProperty("decision_threshold"));
         decision_num = Integer.parseInt(properties.getProperty("decision_num"));
 
-        slide_stride = Integer.parseInt(properties.getProperty("slide_stride"));
 
         File f = new File(System.getProperty("user.dir"), "src/main/resources/" + model_file);
         model = ModelSerializer.restoreMultiLayerNetwork(f);
