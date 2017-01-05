@@ -24,6 +24,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import scala.Int;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +59,10 @@ public class Training {
 
     public static void main(String args[]) throws IOException {
 //        model_file = "model_u_1.zip";
+        System.out.println("Parameters: " + Arrays.toString(args));
         model_file = args[0];
+        numEpochs = Integer.parseInt(args[1]);
+        batchSize = Integer.parseInt(args[2]);
         Properties properties = new Properties();
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties");
         properties.load(inputStream);
@@ -76,13 +80,6 @@ public class Training {
         recordReader.initialize(filesInDir);
         DataSetIterator trainIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
 
-        File p_dir = new File(filename + "/positive");
-        System.out.println("positive: ");
-        System.out.println(Arrays.toString(p_dir.listFiles()));
-
-        File n_dir = new File(filename + "/negative");
-        System.out.println("negative: ");
-        System.out.println(Arrays.toString(n_dir.listFiles()));
 
         DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         scaler.fit(trainIter);
@@ -124,6 +121,7 @@ public class Training {
         double dropOut;
         switch (ann_type) {
             case "alexnet":
+                System.out.println("Network type: alexnet");
                 nonZeroBias = 1;
                 dropOut = 0.5;
                 conf = new NeuralNetConfiguration.Builder()
@@ -156,8 +154,7 @@ public class Training {
                         .backprop(true).pretrain(false).build();
                 break;
             case "lenet":
-                nonZeroBias = 1;
-                dropOut = 0.5;
+                System.out.println("Network type: lenet");
                 conf = new NeuralNetConfiguration.Builder()
                         .seed(seed)
                         .iterations(1)
@@ -198,6 +195,7 @@ public class Training {
                         .backprop(true).pretrain(false).build();
                 break;
             default:
+                System.out.println("Network type: mln");
                 conf = new NeuralNetConfiguration.Builder()
                         .seed(seed)
                         .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
