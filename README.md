@@ -1,1 +1,2 @@
-The project aims at deeply learning from satellite images with the supervision of VGI (OSM and MapSwipe)
+The project aims at deeply learning from satellite images with the supervision of VGI (e.g., OSM and MapSwipe).
+To reproduce the results used in the poster "DeepVGI: Deep Learning with Volunteered Geographic Information, please visit wiki page named "Poster evaluation" (https://gitlab.com/HeiGIT/DeepVGI/wikis/poster-evaluation).
