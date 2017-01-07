@@ -193,7 +193,7 @@ public class Predicting {
         DataSetIterator it = new RecordReaderDataSetIterator(recordReader, batchSize, 1, labelNum);
         scaler.fit(it);
         it.setPreProcessor(scaler);
-        org.nd4j.linalg.dataset.api.DataSet ds = it.next();
+        DataSet ds = it.next();
 
         int row_n = (int) Math.ceil((image_height - tile_height) / (double) slide_stride);
         int col_n = (int) Math.ceil((image_width - tile_width) / (double) slide_stride);
