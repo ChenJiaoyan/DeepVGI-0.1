@@ -42,9 +42,9 @@ public class Training {
 
     private static int numEpochs = 10;
     private static int batchSize = 32;
-    private static String ann_type = "lenet";
+//    private static String ann_type = "lenet";
 //    private static String ann_type = "alexnet";
-//    private static String ann_type = "";
+    private static String ann_type = "";
 
     private static int tile_height;
     private static int tile_width;
